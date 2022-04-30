@@ -28,11 +28,23 @@ const run = async () => {
         })
 
         // get single cloths 
-
         app.get("/cloth/:id", async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) }
             const result = await clothsCollection.findOne(query);
+            res.send(result)
+        })
+
+        // update data 
+        app.put("/cloth/:id", async (req, res) => {
+            const id = req.params.id;
+            const cloth = req.body;
+            const filter = { _id: ObjectId(id) }
+            const option = { upsert: true }
+            const updateDoc = {
+                $set: cloth
+            }
+            const result = await clothsCollection.updateOne(filter, updateDoc, option);
             res.send(result)
         })
 
