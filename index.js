@@ -19,7 +19,7 @@ const run = async () => {
         await client.connect();
         const clothsCollection = client.db("trends").collection("cloths");
 
-        // get all cloths 
+        // get all data 
         app.get("/cloths", async (req, res) => {
             const query = {}
             const cursor = clothsCollection.find(query)
@@ -27,7 +27,7 @@ const run = async () => {
             res.send(result)
         })
 
-        // get single cloths 
+        // get single data
         app.get("/cloth/:id", async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) }
@@ -46,17 +46,17 @@ const run = async () => {
         })
 
         // update data 
-        app.put("/cloth/:id", async (req, res) => {
+        app.delete("/cloth/:id", async (req, res) => {
             const id = req.params.id;
-            const cloth = req.body;
-            const filter = { _id: ObjectId(id) }
-            const option = { upsert: true }
-            const updateDoc = {
-                $set: cloth
+            const query = { _id: ObjectId(id) }
+            const result = await clothsCollection.deleteOne(query);
+            if (result.deletedCount < 1) {
+                res.send({ success: false, message: "Somthing is Wrong" })
+            } else {
+                res.send({ success: true, message: "Deleted Successfull" })
             }
-            const result = await clothsCollection.updateOne(filter, updateDoc, option);
-            res.send(result)
         })
+
 
 
     }
