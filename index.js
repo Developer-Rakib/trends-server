@@ -26,6 +26,14 @@ const run = async () => {
             const result = await cursor.toArray();
             res.send(result)
         })
+        // get data by email
+        app.get("/cloth", async (req, res) => {
+            const email = req.query.email;
+            const query = { email }
+            const cursor = clothsCollection.find(query)
+            const result = await cursor.toArray();
+            res.send(result)
+        })
 
         // get single data
         app.get("/cloth/:id", async (req, res) => {
