@@ -35,6 +35,16 @@ const run = async () => {
             res.send(result)
         })
 
+        // Post data
+        app.post("/cloths", async (req, res) => {
+            const cloth = req.body;
+            if (Object.keys(cloth).length < 0) {
+                return res.send({ success: false, message: 'Data currectly not send' })
+            }
+            const result = await clothsCollection.insertOne(cloth);
+            res.send({ success: true, message: `Succesfuly add ${cloth.name}` })
+        })
+
         // update data 
         app.put("/cloth/:id", async (req, res) => {
             const id = req.params.id;
