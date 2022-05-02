@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const app = express();
 const port = process.env.PORT || 5000;
 const { MongoClient, ObjectId } = require('mongodb');
@@ -14,10 +15,34 @@ app.use(cors())
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nbflg.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
+function verifyJWT(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).send("Unautorized Access")
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.ACCES_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(403).send({ message: "Forbidden Access" })
+        }
+        req.decoded = decoded;
+        next();
+    })
+}
+
 const run = async () => {
     try {
         await client.connect();
         const clothsCollection = client.db("trends").collection("cloths");
+
+        // get JWT 
+        app.post("/login", (req, res) => {
+            const user = req.body;
+            const accessToken = jwt.sign(user, process.env.ACCES_TOKEN_SECRET, {
+                expiresIn: '1d'
+            })
+            res.send({ accessToken })
+        })
 
         // get all data 
         app.get("/cloths", async (req, res) => {
@@ -26,13 +51,22 @@ const run = async () => {
             const result = await cursor.toArray();
             res.send(result)
         })
+
         // get data by email
-        app.get("/cloth", async (req, res) => {
+        app.get("/cloth", verifyJWT, async (req, res) => {
+            const decoddedEmail = req.decoded.email;
             const email = req.query.email;
-            const query = { email }
-            const cursor = clothsCollection.find(query)
-            const result = await cursor.toArray();
-            res.send(result)
+            console.log(decoddedEmail, email);
+            if (email === decoddedEmail) {
+                const query = { email }
+                const cursor = clothsCollection.find(query)
+                const result = await cursor.toArray();
+                console.log(result);
+                res.send(result)
+            } else {
+                console.log("error");
+                res.status(403).send({ message: "forbidden access" })
+            }
         })
 
         // get single data
@@ -54,6 +88,19 @@ const run = async () => {
         })
 
         // update data 
+        app.put("/cloth/:id", async (req, res) => {
+            const id = req.params.id;
+            const cloth = req.body;
+            const filter = { _id: ObjectId(id) }
+            const option = { upsert: true }
+            const updateDoc = {
+                $set: cloth
+            }
+            const result = await clothsCollection.updateOne(filter, updateDoc, option);
+            res.send(result)
+
+        })
+        // delete data 
         app.delete("/cloth/:id", async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) }
