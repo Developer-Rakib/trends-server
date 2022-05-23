@@ -24,7 +24,7 @@ and Used to create this project:
 - MongoDB for Database.
 - Firebase for Authentication.
 
-### Frontend code link :  [https://github.com/ProgrammingHeroWC4/warehouse-management-server-side-Developer-Rakib](https://github.com/ProgrammingHeroWC4/warehouse-management-client-side-Developer-Rakib) 
+### Frontend code link :  [https://github.com/Developer-Rakib/trends-client](https://github.com/Developer-Rakib/trends-client)
 
 
 
